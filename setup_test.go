@@ -124,7 +124,7 @@ func TestChildren(t *testing.T) {
 		}
 	})
 
-	t.Run("ignores non-matching files", func(t *testing.T) {
+	t.Run("ignores non-executable files", func(t *testing.T) {
 		result, err := children("xbps", bin1)
 		if err != nil {
 			t.Fatalf("children failed: %v", err)
@@ -156,8 +156,7 @@ func TestChildrenEdgeCases(t *testing.T) {
 			t.Fatalf("children failed: %v", err)
 		}
 
-		// Should use the first part after xbps- as the key
-		if full, exists := result["src"]; !exists || full != "xbps-src-update" {
+		if full, exists := result["src-update"]; !exists || full != "xbps-src-update" {
 			t.Errorf("Unexpected result for multi-hyphen command: %v", result)
 		}
 	})

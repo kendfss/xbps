@@ -36,7 +36,7 @@ func children(name, PATH string) (map[string]string, error) {
 			if found {
 				continue
 			}
-			key := strings.Split(base, "-")[1]
+			key := strings.Join(strings.Split(base, "-")[1:], "-")
 			table[key] = base
 		}
 	}
@@ -50,6 +50,7 @@ func executable(path string) bool {
 		return false
 	}
 	if runtime.GOOS == "windows" {
+		// this part is technically irrelevant, but in the name of freedom:
 		_, found := map[string]bool{
 			".exe": true, ".com": true, ".bat": true,
 			".cmd": true, ".ps1": true,
