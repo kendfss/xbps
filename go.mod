@@ -1,3 +1,3 @@
 module github.com/kendfss/xbps
 
-go 1.18
+go 1.24

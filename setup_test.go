@@ -36,25 +36,23 @@ func TestChildren(t *testing.T) {
 		}
 	}
 
-	dupCommands := []string{
+	extraCommands := []string{
 		"xbps-install", // duplicate
 		"xbps-search",  // new command
 	}
 
-	for _, cmd := range dupCommands {
+	for _, cmd := range extraCommands {
 		cmdPath := filepath.Join(bin2, cmd)
 		if err := os.WriteFile(cmdPath, []byte("#!/bin/sh\necho "+cmd), 0755); err != nil {
 			t.Fatalf("Failed to create %s: %v", cmd, err)
 		}
 	}
 
-	// Create a non-executable file that matches the pattern (should be ignored)
 	nonExecPath := filepath.Join(bin1, "xbps-config.txt")
 	if err := os.WriteFile(nonExecPath, []byte("config file"), 0644); err != nil {
 		t.Fatalf("Failed to create config file: %v", err)
 	}
 
-	// Create PATH with both directories (bin1 first to test precedence)
 	testPATH := bin1 + string(os.PathListSeparator) + bin2
 
 	t.Run("discovers all commands", func(t *testing.T) {
@@ -95,7 +93,6 @@ func TestChildren(t *testing.T) {
 		if err != nil {
 			t.Fatalf("children failed: %v", err)
 		}
-
 		// xbps-install exists in both bin1 and bin2, should use bin1's version
 		if result["install"] != "xbps-install" {
 			t.Error("Deduplication failed or wrong precedence")
@@ -129,8 +126,6 @@ func TestChildren(t *testing.T) {
 		if err != nil {
 			t.Fatalf("children failed: %v", err)
 		}
-
-		// Should not include the .txt file
 		if _, exists := result["config.txt"]; exists {
 			t.Error("Found non-executable .txt file in results")
 		}

@@ -14,19 +14,25 @@ go install github.com/kendfss/xbps@latest
 sudo ln -s ~/go/bin/xbps /usr/bin/xbps # this is so that it can be found by sudo
 ```
 
+*or*
+
+```bash
+curl -sL "https://github.com/kendfss/xbps/releases/latest/download/xbps_linux_$(uname -m).tar.gz" | tar -xz -O xbps | sudo tee /usr/bin/xbps >/dev/null && sudo chmod +x /usr/bin/xbps
+```
+
 ## Usage (Finally, Sanity)
 
 ### Before (The Dark Times)
 ```bash
-xbps-install -S vim
-xbps-query -Rs python
+xbps-install -S helix
+xbps-query -Rs nasm
 xbps-remove -O
 ```
 
 ### After (Enlightenment)
 ```bash
-xbps install -S vim
-xbps query -Rs python  
+xbps install -S neovim
+xbps query -Rs uv  
 xbps remove -Ooy
 ```
 
@@ -72,7 +78,7 @@ go build
 
 ## Requirements
 - Void Linux (or system with xbps-* commands available)
-- Go 1.18+ (for building from source)
+- Go 1.24+ (for building from source)
 
 
 ---
