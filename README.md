@@ -75,6 +75,8 @@ cd xbps
 go build
 ```
 
+*you can also use `make build` or `make install` to include debugging information in your local builds*
+
 
 ## Requirements
 - Void Linux (or system with xbps-* commands available)
