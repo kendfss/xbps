@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"os/exec"
 	"strings"
 	"testing"
 )
@@ -15,21 +14,10 @@ func init() {
 	}
 }
 
-func linkPipes(from, to *exec.Cmd) error {
-	out, err := from.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	to.Stdin = out
-	return nil
-}
-
 func TestTrie(t *testing.T) {
-	// Simple OS detection
+	// use mock binaries if not running on void
 	content, err := os.ReadFile("/etc/os-release")
 	isVoid := err == nil && strings.Contains(strings.ToLower(string(content)), "void")
-
-	// Use test data if not in Void Linux
 	if !isVoid {
 		t.Log("Not in Void Linux, using test commands")
 		testTrie := trie{}
