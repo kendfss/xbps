@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"strings"
 	"testing"
 )
@@ -16,10 +15,8 @@ func init() {
 
 func TestTrie(t *testing.T) {
 	// use mock binaries if not running on void
-	content, err := os.ReadFile("/etc/os-release")
-	isVoid := err == nil && strings.Contains(strings.ToLower(string(content)), "void")
-	if !isVoid {
-		t.Log("Not in Void Linux, using test commands")
+	if len(aliasTrie) == 0 {
+		t.Log("Not in Void Linux, mocking test commands")
 		testTrie := trie{}
 		testCommands := []string{"install", "fbulk", "fetch", "reconfigure", "remove", "rindex"}
 		for _, cmd := range testCommands {
