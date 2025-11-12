@@ -35,7 +35,7 @@ func TestTrie(t *testing.T) {
 				t.Run(test.arg, func(t *testing.T) {
 					have := aliasTrie.contains(test.arg)
 					if have != test.want {
-						t.Errorf("%q%s have %t, want %t", test.arg, strings.Repeat(" ", longestCommandLength-len(test.arg)), have, test.want)
+						t.Errorf("%q%s have %t, want %t", test.arg, strings.Repeat(" ", max(0, longestCommandLength-len(test.arg))), have, test.want)
 					}
 				})
 			}
