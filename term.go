@@ -5,6 +5,8 @@ import (
 	"unsafe"
 )
 
+// winsize holds the dimension and cursor location in of the current
+// terminal
 type winsize struct {
 	Row    uint16
 	Col    uint16

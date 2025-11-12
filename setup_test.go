@@ -8,16 +8,16 @@ import (
 	"testing"
 )
 
-func TestChildren(t *testing.T) {
+func TestCommandDiscovery(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	bin1 := filepath.Join(tmpDir, "bin1")
 	bin2 := filepath.Join(tmpDir, "bin2")
 
-	if err := os.MkdirAll(bin1, 0755); err != nil {
+	if err := os.MkdirAll(bin1, 0o755); err != nil {
 		t.Fatalf("Failed to create bin1: %v", err)
 	}
-	if err := os.MkdirAll(bin2, 0755); err != nil {
+	if err := os.MkdirAll(bin2, 0o755); err != nil {
 		t.Fatalf("Failed to create bin2: %v", err)
 	}
 
@@ -31,7 +31,7 @@ func TestChildren(t *testing.T) {
 
 	for _, cmd := range testCommands {
 		cmdPath := filepath.Join(bin1, cmd)
-		if err := os.WriteFile(cmdPath, []byte("#!/bin/sh\necho "+cmd), 0755); err != nil {
+		if err := os.WriteFile(cmdPath, []byte("#!/bin/sh\necho "+cmd), 0o755); err != nil {
 			t.Fatalf("Failed to create %s: %v", cmd, err)
 		}
 	}
@@ -43,13 +43,13 @@ func TestChildren(t *testing.T) {
 
 	for _, cmd := range extraCommands {
 		cmdPath := filepath.Join(bin2, cmd)
-		if err := os.WriteFile(cmdPath, []byte("#!/bin/sh\necho "+cmd), 0755); err != nil {
+		if err := os.WriteFile(cmdPath, []byte("#!/bin/sh\necho "+cmd), 0o755); err != nil {
 			t.Fatalf("Failed to create %s: %v", cmd, err)
 		}
 	}
 
 	nonExecPath := filepath.Join(bin1, "xbps-config.txt")
-	if err := os.WriteFile(nonExecPath, []byte("config file"), 0644); err != nil {
+	if err := os.WriteFile(nonExecPath, []byte("config file"), 0o644); err != nil {
 		t.Fatalf("Failed to create config file: %v", err)
 	}
 
@@ -132,17 +132,17 @@ func TestChildren(t *testing.T) {
 	})
 }
 
-func TestChildrenEdgeCases(t *testing.T) {
+func TestCommandDiscoveryEdgeCases(t *testing.T) {
 	tmpDir := t.TempDir()
 	binDir := filepath.Join(tmpDir, "bin")
 
-	if err := os.MkdirAll(binDir, 0755); err != nil {
+	if err := os.MkdirAll(binDir, 0o755); err != nil {
 		t.Fatalf("Failed to create bin directory: %v", err)
 	}
 
 	t.Run("handles commands with multiple hyphens", func(t *testing.T) {
 		multiHyphenCmd := filepath.Join(binDir, "xbps-src-update")
-		if err := os.WriteFile(multiHyphenCmd, []byte("#!/bin/sh"), 0755); err != nil {
+		if err := os.WriteFile(multiHyphenCmd, []byte("#!/bin/sh"), 0o755); err != nil {
 			t.Fatalf("Failed to create multi-hyphen command: %v", err)
 		}
 

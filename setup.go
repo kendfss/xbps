@@ -7,14 +7,25 @@ import (
 	"strings"
 )
 
-var optionTable map[string]string // table of options and their full names
+var (
+	commandTable map[string]string // table of commands and their full names
+	aliasTable   map[string]string // table of aliases and their respective commands
+	aliasTrie    trie              // computes the shortest unique prefix of each command to populate the alias table
+)
 
 func init() {
 	var err error
-	optionTable, err = children("xbps", os.Getenv("PATH"))
+	commandTable, err = children("xbps", os.Getenv("PATH"))
 	if err != nil {
 		logf("couldn't find options: %s", err)
 		os.Exit(1)
+	}
+	for command := range commandTable {
+		aliasTrie.learn(command)
+	}
+	aliasTable = make(map[string]string, len(commandTable))
+	for key := range commandTable {
+		aliasTable[aliasTrie.alias(key)] = key
 	}
 }
 
@@ -28,7 +39,7 @@ func children(name, PATH string) (map[string]string, error) {
 			return nil, err
 		}
 		for _, match := range matches {
-			if !executable(match) {
+			if !isExecutable(match) {
 				continue
 			}
 			base := filepath.Base(match)
@@ -43,20 +54,20 @@ func children(name, PATH string) (map[string]string, error) {
 	return table, nil
 }
 
-// executable checks if the file at the given path is executable
-func executable(path string) bool {
+// isExecutable checks if the file at the given path is isExecutable
+func isExecutable(path string) bool {
 	info, err := os.Stat(path)
 	if err != nil {
 		return false
 	}
 	if runtime.GOOS == "windows" {
-		// this part is technically irrelevant, but in the name of freedom:
+		// this part is technically irrelevant, but in the name of future reference (ie who of the void really knows what WSL is doing these days):
 		_, found := map[string]bool{
 			".exe": true, ".com": true, ".bat": true,
 			".cmd": true, ".ps1": true,
-		}[filepath.Ext(path)]
+		}[strings.ToLower(filepath.Ext(path))]
 		return found
 	}
 	// On Unix-like systems, check executable bits
-	return info.Mode().Perm()&0111 != 0
+	return info.Mode().Perm()&0o111 != 0
 }

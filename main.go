@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"flag"
 	"fmt"
+	"io"
 	"maps"
 	"os"
 	"os/exec"
@@ -19,11 +22,11 @@ var (
 
 func main() {
 	if len(os.Args) == 1 {
-		help()
+		help(nil)
 		os.Exit(1)
 	}
 	if os.Args[1] == "-h" || os.Args[1] == "--help" {
-		help()
+		help(flag.ErrHelp)
 		os.Exit(0)
 	}
 	if os.Args[1] == "-d" || os.Args[1] == "--debug" {
@@ -31,7 +34,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	commandName, found := optionTable[os.Args[1]]
+	commandName, found := commandTable[os.Args[1]]
 	if !found {
 		logf("unsupported command: %q\n", os.Args[1])
 		os.Exit(1)
@@ -64,20 +67,23 @@ func run(cmd *exec.Cmd) {
 }
 
 // help prints the usage information to stderr
-func help() {
+func help(err error) {
+	block := new(bytes.Buffer)
 	name := filepath.Base(os.Args[0])
-	logf("usage:\n\n\t%s [flags] [subcommand] [subcommand flags] [subcommand args]\n\n", name)
-	longest := 0
-	for key := range optionTable {
-		longest = max(longest, len(key))
+	fmt.Fprintf(block, "usage:\n\n\t%s [flags] [command/alias] [command flags] [command args]\n\n", name)
+	longestAlias, longestCommand := 0, 0
+	for alias, command := range aliasTable {
+		longestCommand = max(longestCommand, len(command))
+		longestAlias = max(longestAlias, len(alias))
 	}
-	logf("the subcommands are:\n\n")
-	for _, key := range slices.Sorted(maps.Keys(optionTable)) {
-		val := optionTable[key]
-		logf("\t%s%s", key, strings.Repeat(" ", max(longest-len(key)+1, 0)))
-		logf("\truns %q%swith desired flags and args\n", val, strings.Repeat(" ", longest+1-len(key)))
+	fmt.Fprint(block, "the subcommands are:\n\n")
+	for _, alias := range slices.Sorted(maps.Keys(aliasTable)) {
+		command := aliasTable[alias]
+		full := commandTable[command]
+		fmt.Fprintf(block, "\t%s%s", command, strings.Repeat(" ", max(longestCommand-len(command)+1, 0)))
+		fmt.Fprintf(block, "to run %q%swith desired flags and args\t(aliased to %q)\n", full, strings.Repeat(" ", longestCommand+1-len(command)), alias)
 	}
-	logf("\nthe flags are:\n\n")
+	fmt.Fprint(block, "\nthe flags are:\n\n")
 	flags := map[string]string{
 		"-h, --help":  "print this message",
 		"-d, --debug": "print debug info",
@@ -88,25 +94,33 @@ func help() {
 	}
 	for _, flag := range slices.Sorted(maps.Keys(flags)) {
 		text := flags[flag]
-		logf("\t%s%s\t%s\n", flag, strings.Repeat(" ", longest-longestFlag), text)
+		fmt.Fprintf(block, "\t%s%s\t %s\n", flag, strings.Repeat(" ", longestCommand-longestFlag), text)
 	}
-	logf("\n")
+	if err != nil {
+		fmt.Println(block.String())
+		return
+	}
+	io.Copy(os.Stderr, block)
 }
 
 // debugInfo prints the debug information to stderr
 func debugInfo() {
 	w, _, _ := termSize()
-	block := fmt.Sprintf("version %s\n commit %s\n   date %s\n", version, commit, date)
+	block := new(strings.Builder)
+	fmt.Fprintf(block, "version %s\n commit %s\n   date %s\n", version, commit, date)
 	info, ok := debug.ReadBuildInfo()
 	if ok {
-		block += fmt.Sprintf("   home https://%s\n", info.Path)
+		fmt.Fprintf(block, "   home https://%s", info.Path)
 	}
 	widest := 0
-	for line := range strings.Lines(block) {
+	for line := range strings.Lines(block.String()) {
 		widest = max(widest, len(line))
 	}
-	for line := range strings.Lines(block) {
+	content := block.String()
+	block.Reset()
+	for line := range strings.Lines(content) {
 		line = strings.Repeat(" ", max(w/2-widest/2+1, 0)) + line
-		logf("%s", line)
+		fmt.Fprintf(block, "%s", line)
 	}
+	fmt.Println(block.String())
 }
