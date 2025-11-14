@@ -36,8 +36,12 @@ func main() {
 
 	commandName, found := commandTable[os.Args[1]]
 	if !found {
-		logf("unsupported command: %q\n", os.Args[1])
-		os.Exit(1)
+		childName, found := aliasTable[os.Args[1]]
+		if !found {
+			logf("unsupported command: %q\n", os.Args[1])
+			os.Exit(1)
+		}
+		commandName = commandTable[childName]
 	}
 	argsToPass := []string{}
 	if len(os.Args) > 2 {
@@ -96,11 +100,11 @@ func help(err error) {
 		text := flags[flag]
 		fmt.Fprintf(block, "\t%s%s\t %s\n", flag, strings.Repeat(" ", longestCommand-longestFlag), text)
 	}
+	dst := os.Stderr
 	if err != nil {
-		fmt.Println(block.String())
-		return
+		dst = os.Stdout
 	}
-	io.Copy(os.Stderr, block)
+	io.Copy(dst, block)
 }
 
 // debugInfo prints the debug information to stderr
